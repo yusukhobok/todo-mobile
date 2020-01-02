@@ -25,7 +25,6 @@ class App extends React.Component {
       errorMessage: "",
       showCompleted: false,
       draggable: false,
-      timeInterval = 10000,
       todos: []
     };
   }
@@ -38,14 +37,6 @@ class App extends React.Component {
     })
 
     this.refreshTodos();
-    this.setTimer();
-  }
-
-  setTimer = () => {
-    setInterval(() => {
-      if (!this.state.loading)
-        this.refreshTodos();
-    }, this.state.timeInterval);
   }
 
 
@@ -182,7 +173,7 @@ class App extends React.Component {
       return { ...prevState, loading: true }
     })
     try {
-      await axios.delete(API_URL + todo.id);
+      await axios.delete(API_URL + todo.id + "/");
       this.setState(prevState => {
         return {
           ...prevState,
