@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 class TodoSettings extends React.Component {
     render() {
         let textStyle;
-        if (this.props.showCompleted)
+        if (!this.props.showCompleted)
             textStyle = styles.performedText;
         else
             textStyle = styles.unperformedText;
