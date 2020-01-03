@@ -6,6 +6,7 @@ import Todo from "./Todo";
 class TodoList extends React.Component {
     constructor() {
         super();
+        this.TodosOfCategory = null;
         this.sortedTodos = null;
         this.visibleTodos = null;
     }
@@ -17,7 +18,10 @@ class TodoList extends React.Component {
     }
 
     render() {
-        this.sortedTodos = this.sortTodos(this.props.todos);
+        this.TodosOfCategory = this.props.todos.filter(item => {
+            return item.category == this.props.currentCategory;
+        })
+        this.sortedTodos = this.sortTodos(this.TodosOfCategory);
         this.visibleTodos = this.sortedTodos.filter(item => {
             return (this.props.showCompleted || !item.isCompleted)
         })

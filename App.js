@@ -14,6 +14,7 @@ import TodoSettings from "./TodoSettings";
 
 
 const API_URL = "https://boiling-woodland-05459.herokuapp.com/api/";
+const API_URL_CATEGORIES = "https://boiling-woodland-05459.herokuapp.com/categories/";
 
 
 class App extends React.Component {
@@ -25,6 +26,8 @@ class App extends React.Component {
       errorMessage: "",
       showCompleted: false,
       draggable: false,
+      currentCategory: 1,
+      categories: [],
       todos: []
     };
   }
@@ -37,6 +40,7 @@ class App extends React.Component {
     })
 
     this.refreshTodos();
+    this.getCategoriesFromAPI();
   }
 
 
@@ -83,6 +87,22 @@ class App extends React.Component {
       return todosFromAPI;
     } catch (error) {
       throw new Error("Ошибка доступа к данным");
+    }
+  }
+
+
+  getCategoriesFromAPI = async () => {
+    try {
+      const responce = await axios.get(API_URL_CATEGORIES);
+      const categoriesFromAPI = responce.data.slice();
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          "categories": categoriesFromAPI
+        }
+      })
+    } catch (error) {
+      throw new Error("Ошибка доступа к данным категорий");
     }
   }
 
@@ -154,7 +174,8 @@ class App extends React.Component {
       id: todo.id,
       title: todo.title,
       isCompleted: !todo.isCompleted,
-      order: todo.order
+      order: todo.order,
+      category: todo.category
     };
 
     this.setState(prevState => {
@@ -205,6 +226,15 @@ class App extends React.Component {
     })
   }
 
+  onChangeCurrentCategory = (newCurrentCategory) => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        currentCategory: newCurrentCategory
+      }
+    });
+  }
+
   onAddTodo = async (newTitle) => {
     const orders = this.state.todos.map(item => item.order)
     const maxOrder = Math.max(...orders);
@@ -212,7 +242,8 @@ class App extends React.Component {
     const newTodo = {
       title: newTitle,
       isCompleted: false,
-      order: maxOrder + 1
+      order: maxOrder + 1,
+      category: this.state.currentCategory
     };
 
     this.setState((prevState) => {
@@ -287,12 +318,16 @@ class App extends React.Component {
             onChangeShowCompleted={this.onChangeShowCompleted}
             onChangeDraggable={this.onChangeDraggable}
             onRefresh={this.refreshTodos}
+            categories={this.state.categories}
+            currentCategory={this.state.currentCategory}
+            onChangeCurrentCategory={this.onChangeCurrentCategory}
           />
           <AddTodo
             onAddTodo={this.onAddTodo}
           />
           <TodoList
             todos={this.state.todos}
+            currentCategory={this.state.currentCategory}
             showCompleted={this.state.showCompleted}
             draggable={this.state.draggable}
             onChangeTodoCompleted={this.onChangeTodoCompleted}

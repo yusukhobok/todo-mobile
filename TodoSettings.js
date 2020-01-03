@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Body, Icon, Text, Card, CardItem, Container, Left, Right } from 'native-base';
+import { Button, Body, Icon, Text, Card, CardItem, Container, Left, Right, Form, Item, Picker } from 'native-base';
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -13,6 +13,10 @@ const styles = StyleSheet.create({
 
 
 class TodoSettings extends React.Component {
+    handleChangeCategory = (value) => {
+        this.props.onChangeCurrentCategory(value)
+    }
+
     render() {
         let textStyle;
         if (!this.props.showCompleted)
@@ -20,20 +24,31 @@ class TodoSettings extends React.Component {
         else
             textStyle = styles.unperformedText;
 
+        const categoriesList = this.props.categories.map((value, index) =>
+            <Picker.Item value={value.id} key={value.id} label={value.catTitle} />
+        )
+
         return (
-            <Card >
-                <CardItem >
-                    <Left>
+            <Card>
+                <CardItem>
+                    <Picker
+                        note
+                        mode="dropdown"
+                        selectedValue={this.props.currentCategory}
+                        onValueChange={this.handleChangeCategory}>
+                        {categoriesList}
+                    </Picker>
+
                     <Button bordered onPress={this.props.onRefresh}>
                         <Icon type='MaterialIcons' name='refresh' />
                     </Button>
-                    </Left>
-                    
+
                     <Button bordered onPress={this.props.onChangeShowCompleted} >
                         <Text style={textStyle}>
-                            Показывать выполненные
-                        </Text>
+                            Выполненные
+                     </Text>
                     </Button>
+
                 </CardItem>
             </Card>
         )

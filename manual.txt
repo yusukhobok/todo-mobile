@@ -1,0 +1,6 @@
+npm start
+...
+
+Окончательный деплой:
+удалить папку .expo
+expo build:android
