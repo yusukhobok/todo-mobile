@@ -4,6 +4,7 @@ import axios from "axios";
 
 import { Container, Header, Title, Content, Footer, FooterTab, Button, Left, Right, Body, Icon, Text, Card, CardItem } from 'native-base';
 import Constants from 'expo-constants';
+import { AsyncStorage } from 'react-native';
 
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,16 +12,20 @@ import { Ionicons } from '@expo/vector-icons';
 import TodoList from "./TodoList";
 import AddTodo from "./AddTodo";
 import TodoSettings from "./TodoSettings";
+import LoginForm from "./LoginForm";
 
 
 const API_URL = "https://boiling-woodland-05459.herokuapp.com/api/";
 const API_URL_CATEGORIES = "https://boiling-woodland-05459.herokuapp.com/categories/";
+const API_URL_AUTH = "https://boiling-woodland-05459.herokuapp.com/auth/token/";
 
 
 class App extends React.Component {
   constructor() {
     super();
     this.state = {
+      token: this.getTokenFromStorage(),
+      wrongLoginOrPassword: false,
       loading: true,
       isError: false,
       errorMessage: "",
@@ -32,6 +37,13 @@ class App extends React.Component {
     };
   }
 
+  getTokenFromStorage = async () => {
+    token = await AsyncStorage.getItem("token");
+    return token
+  }
+
+
+
   async componentDidMount() {
     await Font.loadAsync({
       'Roboto': require('native-base/Fonts/Roboto.ttf'),
@@ -39,10 +51,75 @@ class App extends React.Component {
       ...Ionicons.font,
     })
 
-    this.refreshTodos();
-    this.getCategoriesFromAPI();
+    if (this.state.token !== null)
+      this.refreshTodos(true);
   }
 
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (prevState.token !== this.state.token) {
+      if (this.state.token !== null) {
+        this.refreshTodos(true);
+      }
+      else {
+        this.setState(prevState => {
+          return {
+            ...prevState,
+            categories: [],
+            todos: []
+          }
+        });
+      }
+    }
+  }
+
+  setToken = async (token) => {
+    if (token === null)
+      await AsyncStorage.removeItem("token");
+    else
+      await AsyncStorage.setItem("token", token);
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        token: token,
+        wrongLoginOrPassword: false
+      }
+    });
+  }
+
+  getTokenInfo = () => {
+    return { headers: { Authorization: 'Token ' + this.state.token } }
+  }
+
+
+  login = async (username, password) => {
+    try {
+      const data = { username, password };
+      const res = await axios.post(API_URL_AUTH + "login/", data);
+      const token = res.data["auth_token"];
+      this.setToken(token)
+
+      // this.refreshTodos(true);
+
+    } catch (error) {
+      console.log(error.message)
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          wrongLoginOrPassword: true
+        }
+      })
+    }
+  }
+
+  logout = async () => {
+    try {
+      await axios.post(API_URL_AUTH + "logout/", null, this.getTokenInfo());
+      this.setToken(null);
+
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
 
   removeOldTodos = todosFromAPI => {
     const filteredTodos = this.state.todos.filter(item => {
@@ -76,7 +153,7 @@ class App extends React.Component {
 
   getTodosFromAPI = async () => {
     try {
-      const responce = await axios.get(API_URL);
+      const responce = await axios.get(API_URL, this.getTokenInfo());
       let todosFromAPI = responce.data.slice();
       // todosFromAPI = todosFromAPI.map((item) => {
       //   return {
@@ -93,7 +170,7 @@ class App extends React.Component {
 
   getCategoriesFromAPI = async () => {
     try {
-      const responce = await axios.get(API_URL_CATEGORIES);
+      const responce = await axios.get(API_URL_CATEGORIES, this.getTokenInfo());
       const categoriesFromAPI = responce.data.slice();
       this.setState(prevState => {
         return {
@@ -111,14 +188,14 @@ class App extends React.Component {
     if (this.state.todos.length === 0)
       return
     try {
-      await axios.put(API_URL, this.state.todos);
+      await axios.put(API_URL, this.state.todos, this.getTokenInfo());
     } catch (error) {
       throw new Error("Ошибка обновления данных");
     }
   }
 
 
-  refreshTodos = async () => {
+  refreshTodos = async (isGetCategoriesFromAPI = false) => {
     this.setState(prevState => {
       return {
         ...prevState,
@@ -154,17 +231,20 @@ class App extends React.Component {
           }
         });
       }
-
+      if (isGetCategoriesFromAPI)
+        this.getCategoriesFromAPI();
     } catch (error) {
-      this.setState(prevState => {
-        return {
-          ...prevState,
-          loading: false,
-          isError: true,
-          errorMessage: error.message,
-          todos: [],
-        }
-      });
+      console.log(error.message);
+      this.setToken(null);
+      // this.setState(prevState => {
+      //   return {
+      //     ...prevState,
+      //     loading: false,
+      //     isError: true,
+      //     errorMessage: error.message,
+      //     todos: [],
+      //   }
+      // });
     }
   };
 
@@ -194,7 +274,7 @@ class App extends React.Component {
       return { ...prevState, loading: true }
     })
     try {
-      await axios.delete(API_URL + todo.id + "/");
+      await axios.delete(API_URL + todo.id + "/", this.getTokenInfo());
       this.setState(prevState => {
         return {
           ...prevState,
@@ -251,7 +331,7 @@ class App extends React.Component {
     })
 
     try {
-      const res = await axios.post(API_URL, newTodo);
+      const res = await axios.post(API_URL, newTodo, this.getTokenInfo());
       const newTodoFromAPI = res.data;
 
       let newTodos = this.state.todos.slice();
@@ -287,58 +367,66 @@ class App extends React.Component {
 
   render() {
     let todoList;
-    if (this.state.isError) {
+    if (this.state.token === null) {
       todoList = (
-        <CardItem>
-          <Body>
-            <Text>
-              {this.state.errorMessage}
-            </Text>
-          </Body>
-        </CardItem>
-      )
-    }
-    else if (this.state.loading) {
-      todoList = (
-        <CardItem>
-          <Body>
-            <Text>
-              Загрузка...
-            </Text>
-          </Body>
-        </CardItem>
+        <LoginForm loginSubmit={this.login} wrongLoginOrPassword={this.state.wrongLoginOrPassword} />
       )
     }
     else {
-      todoList = (
-        <>
-          <TodoSettings
-            showCompleted={this.state.showCompleted}
-            draggable={this.state.draggable}
-            onChangeShowCompleted={this.onChangeShowCompleted}
-            onChangeDraggable={this.onChangeDraggable}
-            onRefresh={this.refreshTodos}
-            categories={this.state.categories}
-            currentCategory={this.state.currentCategory}
-            onChangeCurrentCategory={this.onChangeCurrentCategory}
-          />
-          <AddTodo
-            onAddTodo={this.onAddTodo}
-          />
-          <TodoList
-            todos={this.state.todos}
-            currentCategory={this.state.currentCategory}
-            showCompleted={this.state.showCompleted}
-            draggable={this.state.draggable}
-            onChangeTodoCompleted={this.onChangeTodoCompleted}
-            onDelete={this.onDelete}
-            onSortEnd={this.changeTodos}
-          />
 
-        </>
-      )
+      if (this.state.isError) {
+        todoList = (
+          <CardItem>
+            <Body>
+              <Text>
+                {this.state.errorMessage}
+              </Text>
+            </Body>
+          </CardItem>
+        )
+      }
+      else if (this.state.loading) {
+        todoList = (
+          <CardItem>
+            <Body>
+              <Text>
+                Загрузка...
+            </Text>
+            </Body>
+          </CardItem>
+        )
+      }
+      else {
+        todoList = (
+          <>
+            <TodoSettings
+              showCompleted={this.state.showCompleted}
+              draggable={this.state.draggable}
+              onChangeShowCompleted={this.onChangeShowCompleted}
+              onChangeDraggable={this.onChangeDraggable}
+              onRefresh={this.refreshTodos}
+              categories={this.state.categories}
+              currentCategory={this.state.currentCategory}
+              onChangeCurrentCategory={this.onChangeCurrentCategory}
+              logout={this.logout}
+            />
+            <AddTodo
+              onAddTodo={this.onAddTodo}
+            />
+            <TodoList
+              todos={this.state.todos}
+              currentCategory={this.state.currentCategory}
+              showCompleted={this.state.showCompleted}
+              draggable={this.state.draggable}
+              onChangeTodoCompleted={this.onChangeTodoCompleted}
+              onDelete={this.onDelete}
+              onSortEnd={this.changeTodos}
+            />
+
+          </>
+        )
+      }
     }
-
 
     return (
       <Container style={{ marginTop: Constants.statusBarHeight }}>
@@ -348,6 +436,7 @@ class App extends React.Component {
       </Container>
     );
   }
+
 }
 
 

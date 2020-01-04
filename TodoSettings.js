@@ -40,13 +40,17 @@ class TodoSettings extends React.Component {
                     </Picker>
 
                     <Button bordered onPress={this.props.onRefresh}>
-                        <Icon type='MaterialIcons' name='refresh' />
+                        <Icon type='MaterialCommunityIcons' name='refresh' />
                     </Button>
 
                     <Button bordered onPress={this.props.onChangeShowCompleted} >
                         <Text style={textStyle}>
                             Выполненные
-                     </Text>
+                        </Text>
+                    </Button>
+
+                    <Button bordered onPress={this.props.logout}>
+                        <Icon type='MaterialCommunityIcons' name='logout' />
                     </Button>
 
                 </CardItem>
