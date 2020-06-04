@@ -24,7 +24,7 @@ class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      token: this.getTokenFromStorage(),
+      token: "7796f3dc61faba68eeae7421d4aba8f21cf89e16", //this.getTokenFromStorage(),
       wrongLoginOrPassword: false,
       loading: true,
       isError: false,
@@ -41,7 +41,6 @@ class App extends React.Component {
     token = await AsyncStorage.getItem("token");
     return token
   }
-
 
 
   async componentDidMount() {
@@ -93,6 +92,7 @@ class App extends React.Component {
 
   login = async (username, password) => {
     try {
+      username = username.trim();
       const data = { username, password };
       const res = await axios.post(API_URL_AUTH + "login/", data);
       const token = res.data["auth_token"];
@@ -112,13 +112,13 @@ class App extends React.Component {
   }
 
   logout = async () => {
-    try {
-      await axios.post(API_URL_AUTH + "logout/", null, this.getTokenInfo());
-      this.setToken(null);
+    // try {
+    //   await axios.post(API_URL_AUTH + "logout/", null, this.getTokenInfo());
+    //   this.setToken(null);
 
-    } catch (error) {
-      console.log(error.message);
-    }
+    // } catch (error) {
+    //   console.log(error.message);
+    // }
   }
 
   removeOldTodos = todosFromAPI => {
@@ -365,6 +365,27 @@ class App extends React.Component {
   }
 
 
+  sortTodosInAlphabeticalOrder = () => {
+    let newTodos = this.state.todos.slice();
+    newTodos.sort((a,b) => {
+      if (a.title.toUpperCase() > b.title.toUpperCase()) return 1;
+      if (a.title.toUpperCase() == b.title.toUpperCase()) return 0;
+      if (a.title.toUpperCase() < b.title.toUpperCase()) return -1;
+    })
+
+    newTodos = newTodos.map((item, index, array) => {
+      return {...item, order: index};
+    })
+
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        todos: newTodos,
+        loading: false
+      };
+    });
+  }
+
   render() {
     let todoList;
     if (this.state.token === null) {
@@ -408,6 +429,7 @@ class App extends React.Component {
               categories={this.state.categories}
               currentCategory={this.state.currentCategory}
               onChangeCurrentCategory={this.onChangeCurrentCategory}
+			        onSortTodosInAlphabeticalOrder={this.sortTodosInAlphabeticalOrder}
               logout={this.logout}
             />
             <AddTodo

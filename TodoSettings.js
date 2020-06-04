@@ -48,10 +48,16 @@ class TodoSettings extends React.Component {
                             Выполненные
                         </Text>
                     </Button>
-
-                    <Button bordered onPress={this.props.logout}>
-                        <Icon type='MaterialCommunityIcons' name='logout' />
+					
+					<Button bordered onPress={this.props.onSortTodosInAlphabeticalOrder} >
+                        <Text>
+                            С
+                        </Text>
                     </Button>
+
+                    {/* <Button bordered onPress={this.props.logout}>
+                        <Icon type='MaterialCommunityIcons' name='logout' />
+                    </Button> */}
 
                 </CardItem>
             </Card>
