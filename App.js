@@ -316,35 +316,57 @@ class App extends React.Component {
   }
 
   onAddTodo = async (newTitle) => {
-    const orders = this.state.todos.map(item => item.order)
-    const maxOrder = Math.max(...orders);
+    const found = this.state.todos.find((item) => item.title.toUpperCase() === newTitle.toUpperCase());
+    if (found === undefined || found.category !== this.state.currentCategory) {
+      const orders = this.state.todos.map(item => item.order)
+      const maxOrder = Math.max(...orders);
 
-    const newTodo = {
-      title: newTitle,
-      isCompleted: false,
-      order: maxOrder + 1,
-      category: this.state.currentCategory
-    };
+      const newTodo = {
+        title: newTitle,
+        isCompleted: false,
+        order: maxOrder + 1,
+        category: this.state.currentCategory
+      };
 
-    this.setState((prevState) => {
-      return { ...prevState, loading: true }
-    })
+      this.setState((prevState) => {
+        return { ...prevState, loading: true }
+      })
 
-    try {
-      const res = await axios.post(API_URL, newTodo, this.getTokenInfo());
-      const newTodoFromAPI = res.data;
+      try {
+        const res = await axios.post(API_URL, newTodo, this.getTokenInfo());
+        const newTodoFromAPI = res.data;
 
-      let newTodos = this.state.todos.slice();
-      newTodos.push(newTodoFromAPI);
-      this.setState(prevState => {
+        let newTodos = this.state.todos.slice();
+        newTodos.push(newTodoFromAPI);
+        this.setState(prevState => {
+          return {
+            ...prevState,
+            todos: newTodos,
+            loading: false
+          };
+        });
+      } catch (error) {
+        console.log(error.message);
+      }
+    }
+    else if (found !== undefined && found.category === this.state.currentCategory && found.isCompleted) {
+      const newTodo = {
+        id: found.id,
+        title: found.title,
+        isCompleted: false,
+        order: found.order,
+        category: found.category,
+      };
+  
+      this.setState((prevState) => {
         return {
           ...prevState,
-          todos: newTodos,
-          loading: false
+          todos: prevState.todos.map((item) => {
+            if (item.id === newTodo.id) return newTodo;
+            else return item;
+          }),
         };
       });
-    } catch (error) {
-      console.log(error.message);
     }
   };
 
