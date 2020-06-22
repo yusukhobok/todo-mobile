@@ -419,54 +419,61 @@ class App extends React.Component {
 
       if (this.state.isError) {
         todoList = (
-          <CardItem>
-            <Body>
-              <Text>
-                {this.state.errorMessage}
-              </Text>
-            </Body>
-          </CardItem>
+          <Content>
+            <CardItem>
+              <Body>
+                <Text>
+                  {this.state.errorMessage}
+                </Text>
+              </Body>
+            </CardItem>
+          </Content>
         )
       }
       else if (this.state.loading) {
         todoList = (
-          <CardItem>
-            <Body>
-              <Text>
-                Загрузка...
-            </Text>
-            </Body>
-          </CardItem>
+          <Content>
+            <CardItem>
+              <Body>
+                <Text>
+                  Загрузка...
+              </Text>
+              </Body>
+            </CardItem>
+          </Content>
         )
       }
       else {
         todoList = (
           <>
-            <TodoSettings
-              showCompleted={this.state.showCompleted}
-              draggable={this.state.draggable}
-              onChangeShowCompleted={this.onChangeShowCompleted}
-              onChangeDraggable={this.onChangeDraggable}
-              onRefresh={this.refreshTodos}
-              categories={this.state.categories}
-              currentCategory={this.state.currentCategory}
-              onChangeCurrentCategory={this.onChangeCurrentCategory}
-			        onSortTodosInAlphabeticalOrder={this.sortTodosInAlphabeticalOrder}
-              logout={this.logout}
-            />
-            <AddTodo
-              onAddTodo={this.onAddTodo}
-            />
-            <TodoList
-              todos={this.state.todos}
-              currentCategory={this.state.currentCategory}
-              showCompleted={this.state.showCompleted}
-              draggable={this.state.draggable}
-              onChangeTodoCompleted={this.onChangeTodoCompleted}
-              onDelete={this.onDelete}
-              onSortEnd={this.changeTodos}
-            />
-
+            <Header transparent>
+              <TodoSettings
+                showCompleted={this.state.showCompleted}
+                draggable={this.state.draggable}
+                onChangeShowCompleted={this.onChangeShowCompleted}
+                onChangeDraggable={this.onChangeDraggable}
+                onRefresh={this.refreshTodos}
+                categories={this.state.categories}
+                currentCategory={this.state.currentCategory}
+                onChangeCurrentCategory={this.onChangeCurrentCategory}
+                onSortTodosInAlphabeticalOrder={this.sortTodosInAlphabeticalOrder}
+                logout={this.logout}
+              />
+            </Header>
+            <Content>
+              <AddTodo
+                onAddTodo={this.onAddTodo}
+              />
+              <TodoList
+                todos={this.state.todos}
+                currentCategory={this.state.currentCategory}
+                showCompleted={this.state.showCompleted}
+                draggable={this.state.draggable}
+                onChangeTodoCompleted={this.onChangeTodoCompleted}
+                onDelete={this.onDelete}
+                onSortEnd={this.changeTodos}
+              />
+            </Content>
           </>
         )
       }
@@ -474,9 +481,7 @@ class App extends React.Component {
 
     return (
       <Container style={{ marginTop: Constants.statusBarHeight }}>
-        <Content>
           {todoList}
-        </Content>
       </Container>
     );
   }

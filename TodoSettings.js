@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Body, Icon, Text, Card, CardItem, Container, Left, Right, Form, Item, Picker } from 'native-base';
+import { Button, Body, Icon, Text, Card, CardItem, Container, Left, Right, Form, Item, Picker, Header } from 'native-base';
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -29,8 +29,7 @@ class TodoSettings extends React.Component {
         )
 
         return (
-            <Card>
-                <CardItem>
+           <>
                     <Picker
                         note
                         mode="dropdown"
@@ -58,9 +57,9 @@ class TodoSettings extends React.Component {
                     {/* <Button bordered onPress={this.props.logout}>
                         <Icon type='MaterialCommunityIcons' name='logout' />
                     </Button> */}
+                    </>
 
-                </CardItem>
-            </Card>
+         
         )
     }
 }
