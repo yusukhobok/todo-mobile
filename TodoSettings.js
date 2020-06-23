@@ -44,7 +44,7 @@ class TodoSettings extends React.Component {
 
                     <Button bordered onPress={this.props.onChangeShowCompleted} >
                         <Text style={textStyle}>
-                            Выполненные
+                            В
                         </Text>
                     </Button>
 					
