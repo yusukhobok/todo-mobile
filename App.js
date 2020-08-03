@@ -49,8 +49,8 @@ class App extends React.Component {
       todos: [],
     };
 
-    const TIMER_DELAY = 1 * 60 * 1000;
-    this.timer = setInterval(this.handleTimer, TIMER_DELAY);
+    //const TIMER_DELAY = 15 * 60 * 1000;
+    //this.timer = setInterval(this.handleTimer, TIMER_DELAY);
   }
 
   getTokenFromStorage = async () => {
@@ -84,13 +84,13 @@ class App extends React.Component {
     }
   }
 
-  handleTimer = () => {
+/*   handleTimer = () => {
     if (this.state.token !== null) {
       if (!this.state.loading) {
         this.refreshTodos(false);
       }
     }
-  };
+  }; */
 
   setToken = async (token) => {
     if (token === null) await AsyncStorage.removeItem("token");
@@ -234,6 +234,7 @@ class App extends React.Component {
           };
         });
     } catch (error) {
+	  console.error(error);
       throw new Error("Ошибка обновления данных");
     }
   };
@@ -251,7 +252,7 @@ class App extends React.Component {
       this.removeOldTodos(todosFromAPI); //удаление дел, которых уже нет на сервере
 
       try {
-        await this.updateTodosToAPI(); //синхронизация дел между сервером и клиентом (локально)
+        await this.updateTodosToAPI(todosFromAPI); //синхронизация дел между сервером и клиентом (локально)
         this.addNewTodos(todosFromAPI); //добавление на сервер новых дел (появившихся локально)
         this.setState((prevState) => {
           return {
